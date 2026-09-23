@@ -1,0 +1,330 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAM - Espace Assuré</title>
+    <link rel="stylesheet" href="{% static 'fds/style.css' %}?v=20260921-photo">
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- AUTHENTICATION VIEWS -->
+    <div class="app-container" id="auth-container">
+        <!-- Sélecteur de langue FR / AR (connexion et inscription) -->
+        <div class="lang-float-bar" id="auth-lang-bar" role="group" aria-label="Choisir la langue">
+            <button type="button" class="lang-btn active" id="btn-fr" onclick="setLang('fr')" aria-label="Français">FR</button>
+            <span class="lang-divider" aria-hidden="true"></span>
+            <button type="button" class="lang-btn" id="btn-ar" onclick="setLang('ar')" aria-label="العربية">AR</button>
+        </div>
+
+        <!-- Floating indicator -->
+        <div class="top-indicator">
+            <div class="indicator-dot"></div>
+        </div>
+
+        <div class="card" id="login-view">
+            <!-- Header -->
+            <div class="card-header">
+                <div class="logo-container">
+                   {% load static %}
+<img src="{% static 'images/logo.png' %}" alt="Logo CNAM" class="logo-image">
+                    <div class="header-titles">
+                        <p class="subtitle">CAISSE NATIONALE D'ASSURANCE MALADIE</p>
+                        <h1 class="title">Espace Assuré</h1>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form class="auth-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="login-email">Adresse e-mail <span class="required">*</span></label>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-at input-icon"></i>
+                        <input type="email" id="login-email" placeholder="Ex: votre@email.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="login-password">Mot de passe <span class="required">*</span></label>
+                        <a href="#" class="help-link">Mot de passe oublié ?</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="login-password" placeholder="Votre mot de passe">
+                        <button type="button" class="toggle-password" onclick="togglePassword('login-password')">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+               
+
+                <p class="auth-message" id="login-message" aria-live="polite"></p>
+                <button type="submit" class="btn btn-primary" id="login-submit">
+                    Se connecter <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="card-footer">
+                <p>Première visite sur le portail ou pas encore de compte ?</p>
+                <a href="#" class="action-link" onclick="switchAuthView('register-view')">
+                    Créer votre compte assuré <i class="fa-solid fa-user-plus"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="card hidden" id="register-view">
+            <div class="card-header register-header">
+                <div class="logo-container small">
+                    {% load static %}
+<img src="{% static 'images/logo.png' %}" alt="Logo CNAM" class="logo-image">
+                </div>
+                <h1 class="title">Créer votre compte<br>CNAM Assuré</h1>
+                <p class="description">Activez vos services numériques de santé en quelques étapes simples avec vos identifiants officiels.</p>
+                <div class="verification-badge">
+                    <i class="fa-solid fa-bolt"></i>
+                    Vérification instantanée auprès du registre national d'assurance maladie
+                </div>
+            </div>
+
+            <form class="auth-form" onsubmit="handleRegistration(event)">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="reg-email">Adresse e-mail <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-at input-icon"></i>
+                        <input type="email" id="reg-email" placeholder="votre@email.com">
+                    </div>
+                </div>
+
+                
+
+                <div class="form-group">
+                    <label for="reg-password">Mot de passe</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="reg-password" oninput="updatePasswordRules()" placeholder="••••••••••••">
+                        <button type="button" class="toggle-password" onclick="togglePassword('reg-password')">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-rules">
+                        <div class="rule" id="rule-length"><i class="fa-regular fa-circle"></i> 8+ car.</div>
+                        <div class="rule" id="rule-case"><i class="fa-regular fa-circle"></i> Minuscule Majuscule</div>
+                        <div class="rule" id="rule-digit"><i class="fa-regular fa-circle"></i> Chiffre</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-confirm">Confirmer le mot de passe <span class="required">*</span></label>
+                    <div class="input-wrapper valid-input">
+                        <i class="fa-solid fa-rotate-left input-icon"></i>
+                        <input type="password" id="reg-confirm" placeholder="••••••••••••">
+                        <i class="fa-regular fa-circle-check valid-icon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePassword('reg-confirm')">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="terms-group">
+                    <input type="checkbox" id="terms">
+                    <label for="terms">J'accepte expressément les <a href="#">Conditions Générales d'Utilisation</a> et consens au traitement de mes données de santé à caractère personnel conformément aux réglementations de protection sanitaire.</label>
+                </div>
+
+                <p class="auth-message" id="register-message" aria-live="polite"></p>
+                <button type="submit" class="btn btn-primary dark" id="register-submit">
+                    <i class="fa-solid fa-user-check"></i> Créer un compte
+                </button>
+            </form>
+
+            <div class="card-footer alternate">
+                <div class="footer-content">
+                    <i class="fa-regular fa-user footer-icon"></i>
+                    <p>Vous possédez déjà un compte CNAM ?</p>
+                </div>
+                <button class="btn btn-outline" onclick="switchAuthView('login-view')">
+                    Se connecter <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- DASHBOARD VIEW -->
+    <div class="dashboard-container hidden" id="dashboard-container">
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-left">
+                {% load static %}
+<img src="{% static 'images/logo.png' %}" alt="Logo CNAM" class="logo-image">
+                <div class="nav-logo-text">
+                    <span class="cnam-title">CNAM</span>
+                    <span class="cnam-subtitle">الصندوق الوطني للتأمين الصحي</span>
+                </div>
+            </div>
+            
+            <div class="nav-center">
+                <button class="nav-tab active" onclick="switchDashboardTab('portail-tab')" id="btn-portail-tab">Portail Assuré</button>
+                <button class="nav-tab" onclick="switchDashboardTab('suivi-tab')" id="btn-suivi-tab">Suivi de Dossier</button>
+            </div>
+            
+            <div class="nav-right">
+                <div class="lang-switch-nav" aria-label="Choisir la langue">
+                    <button type="button" class="lang-btn-nav active" id="nav-btn-fr" onclick="setLang('fr')" aria-label="Français">FR</button>
+                    <span class="lang-divider-nav" aria-hidden="true"></span>
+                    <button type="button" class="lang-btn-nav" id="nav-btn-ar" onclick="setLang('ar')" aria-label="العربية">AR</button>
+                </div>
+                
+                <div class="profile-menu">
+                    <div class="profile-icon" onclick="toggleProfileDropdown()">
+                        <img src="https://ui-avatars.com/api/?name=User&background=d5187e&color=fff" alt="Profile">
+                    </div>
+                    <div class="profile-dropdown hidden" id="profileDropdown">
+                        <p class="dropdown-user" id="profile-user-email"></p>
+                        <button class="dropdown-item text-danger" onclick="logout()">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="dashboard-content">
+            
+            <!-- PORTAIL ASSURÉ TAB -->
+            <div class="dashboard-tab" id="portail-tab">
+                <div class="layout-grid">
+                    
+                    <!-- Left Column (Forms) -->
+                    <div class="form-column">
+                        
+                       
+               
+
+                        <!-- Section 2 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h3><i class="fa-regular fa-clipboard"></i>  Identification nationale &amp; CNAM</h3>
+                                <span class="text-hint">Vérification automatique</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="label-row">
+                                    <label>NNI OU INAM  <span class="required">*</span> <i class="fa-regular fa-circle-question"></i></label>
+                                   
+                                </div>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-hashtag input-icon"></i>
+                                    <input type="text" placeholder="Ex: 1092837465 OU 180612797938-E">
+                                </div>
+                                <p class="input-help">Numéro National d'Identification (NNI) ou Numéro d'Assuré INAM. Le NNI est obligatoire pour toute demande.</p>
+                            </div>
+
+                            
+                        </div>
+
+
+
+                        <!-- Submit Section -->
+                        <div class="submit-section">
+                            
+                            <button class="btn btn-primary submit-btn">
+                                   <i class="fas fa-search"></i> Vérifier
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column (Info Card) -->
+                    <div class="info-column">
+                        <div class="dash-card sticky-card text-center">
+                   
+                            {% load static %}
+<img src="{% static 'images/logo.png' %}" alt="Logo CNAM" class="logo-image">
+                            <h2 class="info-title">Caisse Nationale d'Assurance Maladie</h2>
+                            <p class="info-subtitle">الصندوق الوطني للتأمين الصحي</p>
+                            <div class="divider"></div>
+                            <p class="info-desc">Le service de dépôt direct sans authentification permet d'engager un traitement prioritaire de votre dossier sous 48 heures ouvrables.</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- SUIVI DE DOSSIER TAB -->
+            <div class="dashboard-tab hidden" id="suivi-tab">
+                
+                <div class="dash-card header-banner">
+                    <div class="banner-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="banner-text">
+                        <div class="banner-badges">
+                            <span class="badge blue">PORTAIL NATIONAL CNAM</span>
+                            <span class="badge cyan">Sécurité Sociale Mauritanie</span>
+                        </div>
+                        <h2>Suivi de dossier &amp; Feuille de soins</h2>
+                    </div>
+                    <div class="banner-actions">
+                        <span class="action-label"><i class="fa-solid fa-sliders"></i> Simuler statut :</span>
+                        <div class="status-tabs">
+                            <button class="status-tab active">Validée (PDF)</button>
+                            <button class="status-tab">En attente</button>
+                            <button class="status-tab">Refusée</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card search-card">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <div class="label-row">
+                            <label>Numéro National d'Identification (NNI) ou N° de dossier</label>
+                            <span class="text-hint"><i class="fa-regular fa-circle-question"></i> 10 chiffres pour le NNI</span>
+                        </div>
+                        <div class="search-row">
+                            <div class="input-wrapper flex-grow">
+                                <i class="fa-regular fa-id-badge input-icon"></i>
+                                <input type="text" placeholder="Ex: 1849204812" value="1849204812">
+                            </div>
+                            <button class="btn btn-primary search-btn">
+                                <i class="fa-solid fa-magnifying-glass"></i> Vérifier le statut
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card result-card success">
+                    <div class="result-icon"><i class="fa-regular fa-circle-check"></i></div>
+                    <div class="result-content">
+                        <div class="result-meta">
+                            <span class="badge teal">DEMANDE VALIDÉE</span>
+                            <span class="result-id">• Dossier #CNAM-2025-098231</span>
+                        </div>
+                        <h3>Vos informations ont été vérifiées et approuvées.</h3>
+                        <p>Votre prise en charge intégrale a été validée par la commission médicale. Votre Feuille de soins officielle est prête.</p>
+                    </div>
+                    <button class="btn btn-pink download-btn">
+                        <i class="fa-regular fa-file-pdf"></i> Télécharger la Feuille de soins
+                    </button>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="{% static 'fds/script.js' %}?v=20260921-photo"></script>
+</body>
+</html>

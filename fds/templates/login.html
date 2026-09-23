@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAM - Espace Assuré</title>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Police Google Font (Inter / Poppins) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #0d47a1;
+            --primary-hover: #083272;
+            --pink-accent: #e91e63;
+            --bg-light: #f4f6fa;
+            --input-bg: #edf2f7;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container de la carte */
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            padding: 35px 30px;
+        }
+
+        /* Barre dégradée en haut de la carte */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 50%, #e91e63 100%);
+        }
+
+        /* En-tête : Logo & Titres */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .logo-placeholder {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #e91e63, #0d47a1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .header-text h2 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e3c72;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        /* Formulaire */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .required {
+            color: #d32f2f;
+        }
+
+        .link-help, .link-forgot {
+            font-size: 12px;
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-help:hover, .link-forgot:hover {
+            text-decoration: underline;
+        }
+
+        /* Champ Saisie Input */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background-color: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: var(--primary-blue);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Checkbox Mémoriser */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        /* Bouton Connexion */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.2);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Pied de Carte (Créer compte) */
+        .footer-box {
+            margin-top: 25px;
+            background-color: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 18px;
+            text-align: center;
+        }
+
+        .footer-box p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .btn-register {
+            color: var(--pink-accent);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-register:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- En-tête -->
+        <div class="header">
+            <!-- Vous pouvez remplacer ce bloc div par la vraie balise <img src="...logo_cnam.png"> -->
+            <div class="logo-placeholder">CNAM</div>
+            <div class="header-text">
+                <h2>Caisse Nationale d'Assurance Maladie</h2>
+                <h1>Espace Assuré</h1>
+            </div>
+        </div>
+
+        <form action="#" method="POST">
+            <!-- Numéro d'assuré -->
+            <div class="form-group">
+                <div class="label-row">
+                    <label for="inam">Numéro d'assuré (INAM) <span class="required">*</span></label>
+                    <a href="#" class="link-help"><i class="fa-regular fa-circle-question"></i> Où le trouver ?</a>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-address-card input-icon"></i>
+                    <input type="text" id="inam" name="inam" placeholder="Ex : 1029384756" required>
+                </div>
+                <div class="input-hint">
+                    <i class="fa-regular fa-circle-check"></i> Format : 10 chiffres sans espace
+                </div>
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="form-group">
+                <div class="label-row">
+                    <label for="password">Mot de passe <span class="required">*</span></label>
+                    <a href="#" class="link-forgot">Mot de passe oublié ?</a>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input type="password" id="password" name="password" placeholder="Votre mot de passe" required>
+                    <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+                </div>
+            </div>
+
+            <!-- Mémoriser -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Mémoriser mon identifiant</label>
+            </div>
+
+            <!-- Bouton Se Connecter -->
+            <button type="submit" class="btn-submit">
+                Se connecter <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <!-- Création de compte -->
+        <div class="footer-box">
+            <p>Première visite sur le portail ou pas encore de compte ?</p>
+            <a href="#" class="btn-register">
+                Créer votre compte assuré <i class="fa-solid fa-user-plus"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Script pour afficher/masquer le mot de passe -->
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
+</body>
+</html>
