@@ -4,18 +4,30 @@ import json
 import logging
 import secrets
 
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_POST
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
 from rest_framework.throttling import SimpleRateThrottle
 
+from .db_compat import valeur as _valeur
 from .models import EmailVerificationCode
+from .services import (
+    associer_etablissement,
+    donnees_feuille_soins,
+    lister_etablissements,
+    nom_fichier_feuille_soins,
+    rechercher_assure,
+)
+from .services import _sexe_texte
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +108,12 @@ class RegisterThrottle(_EmailThrottle):
 
 class LoginThrottle(_EmailThrottle):
     scope = 'login'
+
+
+class AssureVerifyThrottle(_EmailThrottle):
+    """Limite les recherches d'assurés (par identifiant, IP en secours)."""
+
+    scope = 'assure_verify'
 
 
 def _throttled_response(request, ident, throttle_class=OtpSendThrottle):
@@ -357,4 +375,185 @@ def logout_api_view(request):
     """Ferme la session de l'assuré connecté."""
     logout(request)
     return JsonResponse({'message': "Vous avez été déconnecté."})
+
+
+# ---------------------------------------------------------------------------
+# Feuille de soins : recherche de l'assuré (NNI / INAM) et PDF
+# ---------------------------------------------------------------------------
+def _resume_assure(assure):
+    """Informations affichées par l'interface après une recherche réussie.
+
+    Les colonnes absentes de la table (schéma PostgreSQL réduit) renvoient une
+    chaîne vide : la fiche reste donc affichable au lieu d'une erreur 500.
+    """
+    naissance = _valeur(assure, 'date_naissance', None)
+    return {
+        'nni': _valeur(assure, 'nni'),
+        'inam': _valeur(assure, 'inam'),
+        'numero_carte': _valeur(assure, 'numero_carte'),
+        'nom': _valeur(assure, 'nom'),
+        'prenom': _valeur(assure, 'prenom'),
+        'nom_complet': assure.nom_complet,
+        'date_naissance': naissance.strftime('%d/%m/%Y') if naissance else '',
+        'age': assure.age,
+        'sexe': _sexe_texte(assure),
+        'telephone': _valeur(assure, 'telephone'),
+        'centre_hospitalier': _valeur(assure, 'centre_hospitalier'),
+    }
+
+
+@require_GET
+def etablissements_view(request):
+    """Liste des établissements de santé conventionnés (liste déroulante).
+
+    Le paramètre `q` filtre la liste par nom (et par ville) : c'est la
+    recherche saisie dans le formulaire. Sans paramètre, la liste complète est
+    renvoyée pour alimenter la liste déroulante.
+    """
+    requete = request.GET.get('q', '') or request.GET.get('recherche', '')
+    etablissements = lister_etablissements(requete)
+
+    return JsonResponse(
+        {
+            'etablissements': etablissements,
+            'total': len(etablissements),
+            'requete': str(requete).strip(),
+        }
+    )
+
+
+@require_POST
+def verifier_assure_view(request):
+    """Recherche un assuré par NNI ou INAM dans PostgreSQL.
+
+    Retourne ses informations et l'URL de téléchargement de sa Feuille de soins
+    (générée à la demande avec la date et l'heure courantes).
+    """
+    payload = _read_json(request)
+    if payload is None:
+        return JsonResponse(
+            {'error': "Requête invalide : le corps de la requête doit être un objet JSON."},
+            status=400,
+        )
+
+    identifiant = str(
+        payload.get('identifiant') or payload.get('nni') or payload.get('inam') or ''
+    ).strip()
+
+    if not identifiant:
+        return JsonResponse(
+            {'trouve': False, 'error': "Saisissez un NNI ou un numéro d'assuré INAM."},
+            status=400,
+        )
+
+    throttled = _throttled_response(request, identifiant, AssureVerifyThrottle)
+    if throttled:
+        return throttled
+
+    assure = rechercher_assure(identifiant)
+    if assure is None:
+        return JsonResponse(
+            {
+                'trouve': False,
+                'error': (
+                    "Assuré introuvable : aucun assuré ne correspond au numéro "
+                    f"« {identifiant} ». Vérifiez le NNI ou le numéro INAM saisi."
+                ),
+            },
+            status=404,
+        )
+
+    # L'établissement choisi est enregistré sur la fiche de l'assuré : il est
+    # ainsi repris automatiquement sur la Feuille de soins.
+    try:
+        etablissement = associer_etablissement(assure, payload.get('etablissement'))
+    except ValueError as exc:
+        return JsonResponse(
+            {'trouve': False, 'error': str(exc)},
+            status=400,
+        )
+
+    donnees = donnees_feuille_soins(assure, timezone.localtime())
+
+    return JsonResponse(
+        {
+            'trouve': True,
+            'message': f"Assuré trouvé : {assure.nom_complet}.",
+            'centre_hospitalier': donnees['centre_hospitalier'],
+            'etablissement_selectionne': (
+                etablissement.libelle if etablissement is not None else ''
+            ),
+            'assure': _resume_assure(assure),
+            'date_soins': donnees['date_soins_texte'],
+            'numero_feuille': donnees['numero_feuille'],
+            'photo_disponible': bool(donnees['photo']),
+            'photo_url': reverse('assure_photo', args=[assure.nni]),
+            'qr_contenu': donnees['qr_contenu'],
+            'feuille_url': reverse('feuille_de_soins_pdf', args=[assure.nni]),
+            'feuille_nom': nom_fichier_feuille_soins(assure),
+        }
+    )
+
+
+@require_GET
+def assure_photo_view(request, nni):
+    """Renvoie la photo de profil de l'assuré (404 si aucune photo en base)."""
+    assure = rechercher_assure(nni)
+    octets = assure.photo_binaire() if assure is not None else None
+    if not octets:
+        return JsonResponse(
+            {'error': "Aucune photo enregistrée pour cet assuré."}, status=404
+        )
+
+    type_photo = _valeur(assure, 'photo_type', '') or 'image/jpeg'
+    reponse = HttpResponse(octets, content_type=type_photo)
+    reponse['Cache-Control'] = 'private, max-age=300'
+    return reponse
+
+
+@require_GET
+def feuille_de_soins_pdf_view(request, nni):
+    """Génère et renvoie la Feuille de soins PDF d'un assuré (NNI ou INAM)."""
+    assure = rechercher_assure(nni)
+    if assure is None:
+        return JsonResponse(
+            {'trouve': False, 'error': "Assuré introuvable : feuille de soins non générée."},
+            status=404,
+        )
+
+    donnees = donnees_feuille_soins(assure, timezone.localtime())
+
+    # Import paresseux : si une dépendance PDF manque, seul cet endpoint est
+    # concerné (le reste du portail continue de fonctionner).
+    try:
+        from .feuille_soins_pdf import generer_feuille_soins
+    except ImportError:
+        logger.exception("Dépendances de génération PDF manquantes.")
+        return JsonResponse(
+            {
+                'error': (
+                    "Génération de la feuille de soins indisponible : installez "
+                    "les dépendances (pip install -r requirements.txt)."
+                )
+            },
+            status=500,
+        )
+
+    try:
+        contenu = generer_feuille_soins(donnees)
+    except Exception:
+        logger.exception("Génération de la feuille de soins impossible (NNI=%s).", nni)
+        return JsonResponse(
+            {'error': "La génération de la feuille de soins a échoué. Réessayez dans un instant."},
+            status=500,
+        )
+
+    disposition = 'inline' if request.GET.get('inline') else 'attachment'
+    reponse = HttpResponse(contenu, content_type='application/pdf')
+    reponse['Content-Disposition'] = (
+        f'{disposition}; filename="{nom_fichier_feuille_soins(assure)}"'
+    )
+    reponse['Cache-Control'] = 'no-store'
+    return reponse
+
 

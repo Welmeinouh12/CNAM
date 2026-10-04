@@ -1,11 +1,11 @@
-{% load static %}
+{% load static static_version %}
 <!DOCTYPE html>
 <html lang="fr" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNAM - Espace Assuré</title>
-    <link rel="stylesheet" href="{% static 'fds/style.css' %}?v=20260921-photo">
+    <link rel="stylesheet" href="{% static_versioned 'fds/style.css' %}">
     <!-- Google Fonts for modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,7 +179,6 @@
             
             <div class="nav-center">
                 <button class="nav-tab active" onclick="switchDashboardTab('portail-tab')" id="btn-portail-tab">Portail Assuré</button>
-                <button class="nav-tab" onclick="switchDashboardTab('suivi-tab')" id="btn-suivi-tab">Suivi de Dossier</button>
             </div>
             
             <div class="nav-right">
@@ -214,8 +213,30 @@
                     <div class="form-column">
                         
                        
-               
+                 <!-- Hôpital / centre de santé conventionné (associé à la Feuille de soins) -->
+                            <div class="form-group">
+                                <div class="label-row">
+                                    <label for="etablissement-select" data-i18n="etablissement_label">HÔPITAL OU CENTRE DE SANTÉ <i class="fa-regular fa-circle-question"></i></label>
+                                    <span class="text-hint">Conventionné CNAM</span>
+                                </div>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                                    <input type="text" id="etablissement-recherche" autocomplete="off"
+                                           data-i18n-placeholder="etablissement_placeholder"
+                                           placeholder="Rechercher un établissement par nom (ex : Cheikh Zaid)">
+                                </div>
+                                <div class="input-wrapper etablissement-wrapper">
+                                    <select id="etablissement-select" aria-label="Liste des hôpitaux et centres de santé conventionnés">
+                                        <option value="">— Sélectionner un établissement conventionné —</option>
+                                    </select>
+                                </div>
+                                <p class="input-help" data-i18n="etablissement_aide">L'établissement sélectionné est inscrit automatiquement sur votre Feuille de soins.</p>
+                            </div>
 
+                            
+                        </div>
+                        
+ </div>
                         <!-- Section 2 -->
                         <div class="dash-card">
                             <div class="dash-card-header">
@@ -223,29 +244,62 @@
                                 <span class="text-hint">Vérification automatique</span>
                             </div>
                             
-                            <div class="form-group">
+                            <div class="form-group" id="assure-identifiant-groupe">
                                 <div class="label-row">
-                                    <label>NNI OU INAM  <span class="required">*</span> <i class="fa-regular fa-circle-question"></i></label>
+                                    <label for="assure-identifiant">NNI OU INAM  <i class="fa-regular fa-circle-question"></i></label>
                                    
                                 </div>
                                 <div class="input-wrapper">
                                     <i class="fa-solid fa-hashtag input-icon"></i>
-                                    <input type="text" placeholder="Ex: 1092837465 OU 180612797938-E">
+                                    <input type="text" id="assure-identifiant" autocomplete="off" disabled
+                                           aria-describedby="assure-identifiant-avertissement"
+                                           placeholder="Ex: 1092837465 OU 180612797938-E">
                                 </div>
                                 <p class="input-help">Numéro National d'Identification (NNI) ou Numéro d'Assuré INAM. Le NNI est obligatoire pour toute demande.</p>
+                                <p class="input-help champ-oblige-avertissement" id="assure-identifiant-avertissement" role="status" aria-live="polite" hidden></p>
                             </div>
 
-                            
-                        </div>
+                          
 
 
 
                         <!-- Submit Section -->
                         <div class="submit-section">
                             
-                            <button class="btn btn-primary submit-btn">
+                            <button type="button" class="btn btn-primary submit-btn" id="btn-verifier-assure"
+                                    onclick="verifierAssure()" disabled>
                                    <i class="fas fa-search"></i> Vérifier
                             </button>
+                            <p class="auth-message" id="verification-message" aria-live="polite"></p>
+                        </div>
+
+                        <!-- Assuré trouvé : informations + Feuille de soins -->
+                        <div class="dash-card result-card success hidden" id="assure-resultat" aria-live="polite">
+                            <div class="result-photo hidden" id="assure-photo-zone">
+                                <img id="assure-photo" src="" alt="Photo de l'assuré">
+                            </div>
+                            <div class="result-content">
+                                <div class="result-meta">
+                                    <span class="badge teal">ASSURÉ TROUVÉ</span>
+                                    <span class="result-id" id="assure-numero-feuille"></span>
+                                </div>
+                                <h3 id="assure-nom-complet"></h3>
+                                <dl class="assure-infos" id="assure-infos"></dl>
+                                <p class="assure-date-soins" id="assure-date-soins"></p>
+                            </div>
+                            <button type="button" class="btn btn-pink download-btn" id="btn-telecharger-feuille"
+                                    onclick="telechargerFeuilleSoins()">
+                                <i class="fa-regular fa-file-pdf"></i> Télécharger la Feuille de soins
+                            </button>
+                        </div>
+
+                        <!-- Assuré introuvable -->
+                        <div class="dash-card result-card error hidden" id="assure-introuvable" aria-live="assertive">
+                            <div class="result-icon"><i class="fa-regular fa-circle-xmark"></i></div>
+                            <div class="result-content">
+                                <h3 id="assure-erreur-titre">Assuré introuvable</h3>
+                                <p id="assure-erreur-texte"></p>
+                            </div>
                         </div>
                     </div>
 
@@ -264,67 +318,10 @@
                     
                 </div>
             </div>
-
-            <!-- SUIVI DE DOSSIER TAB -->
-            <div class="dashboard-tab hidden" id="suivi-tab">
-                
-                <div class="dash-card header-banner">
-                    <div class="banner-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div class="banner-text">
-                        <div class="banner-badges">
-                            <span class="badge blue">PORTAIL NATIONAL CNAM</span>
-                            <span class="badge cyan">Sécurité Sociale Mauritanie</span>
-                        </div>
-                        <h2>Suivi de dossier &amp; Feuille de soins</h2>
-                    </div>
-                    <div class="banner-actions">
-                        <span class="action-label"><i class="fa-solid fa-sliders"></i> Simuler statut :</span>
-                        <div class="status-tabs">
-                            <button class="status-tab active">Validée (PDF)</button>
-                            <button class="status-tab">En attente</button>
-                            <button class="status-tab">Refusée</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dash-card search-card">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <div class="label-row">
-                            <label>Numéro National d'Identification (NNI) ou N° de dossier</label>
-                            <span class="text-hint"><i class="fa-regular fa-circle-question"></i> 10 chiffres pour le NNI</span>
-                        </div>
-                        <div class="search-row">
-                            <div class="input-wrapper flex-grow">
-                                <i class="fa-regular fa-id-badge input-icon"></i>
-                                <input type="text" placeholder="Ex: 1849204812" value="1849204812">
-                            </div>
-                            <button class="btn btn-primary search-btn">
-                                <i class="fa-solid fa-magnifying-glass"></i> Vérifier le statut
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dash-card result-card success">
-                    <div class="result-icon"><i class="fa-regular fa-circle-check"></i></div>
-                    <div class="result-content">
-                        <div class="result-meta">
-                            <span class="badge teal">DEMANDE VALIDÉE</span>
-                            <span class="result-id">• Dossier #CNAM-2025-098231</span>
-                        </div>
-                        <h3>Vos informations ont été vérifiées et approuvées.</h3>
-                        <p>Votre prise en charge intégrale a été validée par la commission médicale. Votre Feuille de soins officielle est prête.</p>
-                    </div>
-                    <button class="btn btn-pink download-btn">
-                        <i class="fa-regular fa-file-pdf"></i> Télécharger la Feuille de soins
-                    </button>
-                </div>
-
-            </div>
             
         </div>
     </div>
 
-    <script src="{% static 'fds/script.js' %}?v=20260921-photo"></script>
+    <script src="{% static_versioned 'fds/script.js' %}"></script>
 </body>
 </html>

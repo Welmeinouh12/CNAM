@@ -1,0 +1,18 @@
+# Dépendances du portail assuré CNAM
+# Installation : pip install -r requirements.txt
+
+Django>=6.1,<7.0
+djangorestframework>=3.18,<4.0
+
+# Base de données des assurés (PostgreSQL)
+psycopg[binary]>=3.2
+
+# Génération de la Feuille de soins PDF
+PyMuPDF>=1.24          # pose des données sur le modèle PDF + rendu/contrôle
+reportlab>=4.0         # reproduction fidèle du formulaire (mode de repli)
+qrcode>=8.0            # code QR / code scanné
+pillow>=10.0           # photo de l'assuré, logo d'en-tête
+
+# Texte arabe (libellés du modèle)
+arabic-reshaper>=3.0
+python-bidi>=0.6

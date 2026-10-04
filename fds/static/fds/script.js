@@ -31,7 +31,6 @@ const translations = {
         already_account:    "Vous possédez déjà un compte CNAM ?",
         /* Navbar */
         tab_portail:        "Portail Assuré",
-        tab_suivi:          "Suivi de Dossier",
         agent_access:       "Accès Agent",
         logout:             "Déconnexion",
         /* Dashboard – Section 1 */
@@ -80,20 +79,35 @@ const translations = {
         /* Info card */
         info_card_title:    "Caisse Nationale d'Assurance Maladie",
         info_card_desc:     "Le service de dépôt direct sans authentification permet d'engager un traitement prioritaire de votre dossier sous 48 heures ouvrables.",
-        /* Suivi */
-        badge_national:     "PORTAIL NATIONAL CNAM",
-        badge_social:       "Sécurité Sociale Mauritanie",
-        suivi_title:        "Suivi de dossier & Feuille de soins",
-        simulate_status:    "Simuler statut :",
-        status_valid:       "Validée (PDF)",
-        status_pending:     "En attente",
-        status_refused:     "Refusée",
-        search_label:       "Numéro National d'Identification (NNI) ou N° de dossier",
-        verify_btn:         "Vérifier le statut",
-        validated_badge:    "DEMANDE VALIDÉE",
-        result_title:       "Vos informations ont été vérifiées et approuvées.",
-        result_desc:        "Votre prise en charge intégrale a été validée par la commission médicale. Votre Feuille de soins officielle est prête.",
-        download_btn:       "Télécharger la Feuille de soins",
+        /* Recherche de l'assuré (NNI / INAM) et Feuille de soins PDF */
+        verify_assure_btn:  "Vérifier",
+        assure_found_badge: "ASSURÉ TROUVÉ",
+        assure_not_found_title: "Assuré introuvable",
+        lbl_nni:            "NNI",
+        lbl_inam:           "N° d'Assuré INAM",
+        lbl_numero_carte:   "N° de carte",
+        lbl_naissance:      "Date de naissance",
+        lbl_age:            "Âge",
+        lbl_sexe:           "Sexe",
+        lbl_telephone:      "Téléphone",
+        lbl_numero_feuille: "N° de feuille de soins",
+        unit_years:         "ans",
+        msg_identifiant_required: "Saisissez un NNI ou un numéro d'Assuré INAM.",
+        msg_verification_en_cours: "Vérification dans la base de l'assurance maladie…",
+        msg_assure_trouve:  "Assuré trouvé. Votre Feuille de soins a été générée et le téléchargement démarre.",
+        msg_assure_photo_absente: "Aucune photo enregistrée pour cet assuré.",
+        msg_date_soins:     "Date des soins : ",
+        msg_feuille_numero: "Feuille n° ",
+        /* Liste des établissements de santé conventionnés */
+        etablissement_label:    "HÔPITAL OU CENTRE DE SANTÉ",
+        etablissement_placeholder: "Rechercher un établissement par nom (ex : Cheikh Zaid)",
+        etablissement_option:   "— Sélectionner un établissement conventionné —",
+        etablissement_aucun:    "Aucun établissement ne correspond à cette recherche.",
+        etablissement_indisponible: "Liste des établissements indisponible.",
+        etablissement_aide:     "L'établissement sélectionné est inscrit automatiquement sur votre Feuille de soins.",
+        lbl_centre_hospitalier: "Établissement",
+        msg_etablissement_associe: "Établissement associé à la Feuille de soins : ",
+        msg_etablissement_requis: "Sélectionnez d'abord un hôpital ou un centre de santé : ce choix est obligatoire avant de saisir le NNI ou l'INAM.",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - Espace Assuré",
         register_line1:     "Créer votre compte",
@@ -104,7 +118,6 @@ const translations = {
         preview_line2:      "35x45mm",
         phone_label_short:  "Téléphone portable",
         nni_hint_short:     "10 chiffres pour le NNI",
-        dossier_line:       "• Dossier #CNAM-2025-098231",
         /* Compléments : placeholders */
         reg_email_placeholder: "votre@email.com",
         inam_placeholder:   "Ex: 8472910-B",
@@ -156,7 +169,6 @@ const translations = {
         already_account:    "هل لديك حساب لدى الصندوق بالفعل؟",
         /* Navbar */
         tab_portail:        "بوابة المؤمَّن",
-        tab_suivi:          "متابعة الملف",
         agent_access:       "دخول الوكيل",
         logout:             "تسجيل الخروج",
         /* Section 1 */
@@ -205,20 +217,35 @@ const translations = {
         /* Info card */
         info_card_title:    "الصندوق الوطني للتأمين الصحي",
         info_card_desc:     "تتيح خدمة الإيداع المباشر دون مصادقة فتح معالجة ذات أولوية لملفك خلال ٤٨ ساعة عمل.",
-        /* Suivi */
-        badge_national:     "البوابة الوطنية للصندوق",
-        badge_social:       "الضمان الاجتماعي موريتانيا",
-        suivi_title:        "متابعة الملف وورقة العلاج",
-        simulate_status:    "محاكاة الحالة:",
-        status_valid:       "مُصادَق عليه (PDF)",
-        status_pending:     "قيد الانتظار",
-        status_refused:     "مرفوض",
-        search_label:       "رقم التعريف الوطني (NNI) أو رقم الملف",
-        verify_btn:         "التحقق من الحالة",
-        validated_badge:    "الطلب مُصادَق عليه",
-        result_title:       "تم التحقق من معلوماتك والموافقة عليها.",
-        result_desc:        "تمت المصادقة على تكفلك الكامل من قِبل اللجنة الطبية. ورقة العلاج الرسمية جاهزة.",
-        download_btn:       "تحميل ورقة العلاج",
+        /* Recherche de l'assuré (NNI / INAM) et Feuille de soins PDF */
+        verify_assure_btn:  "تحقّق",
+        assure_found_badge: "المؤمَّن موجود",
+        assure_not_found_title: "المؤمَّن غير موجود",
+        lbl_nni:            "الرقم الوطني للتعريف",
+        lbl_inam:           "رقم المؤمَّن INAM",
+        lbl_numero_carte:   "رقم البطاقة",
+        lbl_naissance:      "تاريخ الميلاد",
+        lbl_age:            "العمر",
+        lbl_sexe:           "الجنس",
+        lbl_telephone:      "الهاتف",
+        lbl_numero_feuille: "رقم ورقة العلاج",
+        unit_years:         "سنة",
+        msg_identifiant_required: "أدخل الرقم الوطني للتعريف أو رقم المؤمَّن INAM.",
+        msg_verification_en_cours: "جارٍ التحقق في قاعدة بيانات التأمين الصحي…",
+        msg_assure_trouve:  "تم العثور على المؤمَّن. تم إنشاء ورقة العلاج وبدأ التحميل.",
+        msg_assure_photo_absente: "لا توجد صورة مسجّلة لهذا المؤمَّن.",
+        msg_date_soins:     "تاريخ العلاج: ",
+        msg_feuille_numero: "ورقة رقم ",
+        /* قائمة المؤسسات الصحية المتعاقدة */
+        etablissement_label:    "المستشفى أو مركز الصحة",
+        etablissement_placeholder: "ابحث عن مؤسسة بالاسم (مثال: شيخ زايد)",
+        etablissement_option:   "— اختر مؤسسة متعاقدة —",
+        etablissement_aucun:    "لا توجد مؤسسة مطابقة لهذا البحث.",
+        etablissement_indisponible: "قائمة المؤسسات غير متاحة.",
+        etablissement_aide:     "تُسجَّل المؤسسة المختارة تلقائياً في ورقة العلاج الخاصة بكم.",
+        lbl_centre_hospitalier: "المؤسسة",
+        msg_etablissement_associe: "المؤسسة المرتبطة بورقة العلاج: ",
+        msg_etablissement_requis: "اختر أولاً المستشفى أو مركز الصحة: هذا الاختيار إلزامي قبل إدخال رقم التعريف الوطني أو رقم المؤمَّن.",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - فضاء المؤمَّن",
         register_line1:     "إنشاء حسابك",
@@ -229,7 +256,6 @@ const translations = {
         preview_line2:      "35×45 ملم",
         phone_label_short:  "الهاتف المحمول",
         nni_hint_short:     "١٠ أرقام لرقم التعريف الوطني",
-        dossier_line:       "• الملف #CNAM-2025-098231",
         /* Compléments : placeholders */
         reg_email_placeholder: "بريدك@email.com",
         inam_placeholder:   "مثال: 8472910-B",
@@ -402,10 +428,8 @@ function setLang(lang) {
 
     /* Navigation labels do not use data-i18n attributes. */
     const portailTab = document.getElementById('btn-portail-tab');
-    const suiviTab = document.getElementById('btn-suivi-tab');
     const agentButton = document.querySelector('.btn-agent');
     if (portailTab) portailTab.textContent = t.tab_portail;
-    if (suiviTab) suiviTab.textContent = t.tab_suivi;
     if (agentButton) agentButton.textContent = t.agent_access;
 
     /* 5. directional arrow icons  */
@@ -443,6 +467,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setLang(saved);
     updatePasswordRules();
     initPhotoUpload();
+    initRechercheAssure();
+    initEtablissements();
 });
 
 /* ============================================================
@@ -487,6 +513,35 @@ function updatePasswordRules() {
     toggleRule('rule-length', password.length >= 8);
     toggleRule('rule-case', /[a-z]/.test(password) && /[A-Z]/.test(password));
     toggleRule('rule-digit', /\d/.test(password));
+}
+
+/* Requête GET JSON (liste des établissements de santé conventionnés). */
+async function apiGet(url) {
+    let response;
+
+    try {
+        response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+        });
+    } catch (networkError) {
+        throw new Error(t('msg_network_error'));
+    }
+
+    const responseText = await response.text();
+    let data;
+
+    try {
+        data = JSON.parse(responseText);
+    } catch {
+        throw new Error(`Le serveur a renvoyé une réponse invalide (HTTP ${response.status}). Redémarrez Django puis actualisez la page.`);
+    }
+
+    if (!response.ok) {
+        throw new Error(data.error || `Une erreur est survenue (HTTP ${response.status}).`);
+    }
+
+    return data;
 }
 
 async function apiRequest(url, payload) {
@@ -773,6 +828,318 @@ function initPhotoUpload() {
     zone.addEventListener('drop', event => {
         const files = event.dataTransfer ? event.dataTransfer.files : null;
         if (files && files.length) handlePhotoFile(files[0]);
+    });
+}
+
+/* ============================================================
+   RECHERCHE DE L'ASSURÉ (NNI / INAM) → FEUILLE DE SOINS PDF
+   ============================================================ */
+let feuilleSoinsCourante = null;
+
+/* Vide les zones de résultat avant chaque nouvelle vérification. */
+function reinitialiserResultatAssure() {
+    const resultat = document.getElementById('assure-resultat');
+    const erreur   = document.getElementById('assure-introuvable');
+    const photo    = document.getElementById('assure-photo');
+    const zone     = document.getElementById('assure-photo-zone');
+    const infos    = document.getElementById('assure-infos');
+
+    if (resultat) resultat.classList.add('hidden');
+    if (erreur) erreur.classList.add('hidden');
+    if (zone) zone.classList.add('hidden');
+    if (photo) photo.removeAttribute('src');
+    if (infos) infos.innerHTML = '';
+
+    ['assure-nom-complet', 'assure-numero-feuille', 'assure-date-soins'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = '';
+    });
+
+    feuilleSoinsCourante = null;
+}
+
+/* Ajoute une ligne « libellé / valeur » dans la fiche de l'assuré. */
+function ajouterInfoAssure(libelle, valeur) {
+    const liste = document.getElementById('assure-infos');
+    if (!liste || !valeur) return;
+
+    const terme = document.createElement('dt');
+    terme.textContent = libelle;
+
+    const definition = document.createElement('dd');
+    definition.textContent = valeur;
+
+    liste.appendChild(terme);
+    liste.appendChild(definition);
+}
+
+function afficherAssureTrouve(data) {
+    const assure   = data.assure || {};
+    const resultat = document.getElementById('assure-resultat');
+    const erreur   = document.getElementById('assure-introuvable');
+    const nom      = document.getElementById('assure-nom-complet');
+    const numero   = document.getElementById('assure-numero-feuille');
+    const date     = document.getElementById('assure-date-soins');
+    const zone     = document.getElementById('assure-photo-zone');
+    const photo    = document.getElementById('assure-photo');
+
+    /* Exclusivité des résultats : jamais « trouvé » et « introuvable » ensemble. */
+    if (erreur) erreur.classList.add('hidden');
+
+    if (nom) nom.textContent = assure.nom_complet || '';
+    if (numero) numero.textContent = t('msg_feuille_numero') + (data.numero_feuille || '');
+    if (date) date.textContent = t('msg_date_soins') + (data.date_soins || '');
+
+    ajouterInfoAssure(t('lbl_nni'), assure.nni);
+    ajouterInfoAssure(t('lbl_inam'), assure.inam);
+    ajouterInfoAssure(t('lbl_numero_carte'), assure.numero_carte);
+    ajouterInfoAssure(t('lbl_naissance'), assure.date_naissance);
+    ajouterInfoAssure(t('lbl_age'), assure.age ? `${assure.age} ${t('unit_years')}` : '');
+    ajouterInfoAssure(t('lbl_sexe'), assure.sexe);
+    ajouterInfoAssure(t('lbl_telephone'), assure.telephone);
+    ajouterInfoAssure(t('lbl_centre_hospitalier'), assure.centre_hospitalier);
+
+    /* Photo de profil : affichée uniquement si elle existe dans PostgreSQL. */
+    if (data.photo_disponible && photo && zone) {
+        photo.src = data.photo_url;
+        photo.alt = assure.nom_complet || '';
+        zone.classList.remove('hidden');
+    }
+
+    feuilleSoinsCourante = { url: data.feuille_url, nom: data.feuille_nom };
+    if (resultat) resultat.classList.remove('hidden');
+}
+
+function afficherAssureIntrouvable(message) {
+    const resultat = document.getElementById('assure-resultat');
+    const erreur   = document.getElementById('assure-introuvable');
+    const titre    = document.getElementById('assure-erreur-titre');
+    const texte    = document.getElementById('assure-erreur-texte');
+
+    /* Exclusivité des résultats : masque le bloc « Assuré trouvé ». */
+    if (resultat) resultat.classList.add('hidden');
+
+    if (titre) titre.textContent = t('assure_not_found_title');
+    if (texte) texte.textContent = message || '';
+    if (erreur) erreur.classList.remove('hidden');
+}
+
+/* Lance le téléchargement du PDF de la feuille de soins.
+
+   On passe par un lien temporaire porteur de l'attribut `download` plutôt que
+   par `window.location.href` : ce dernier fait quitter la page au navigateur,
+   ce qui détruit le résultat de la recherche (nom, NNI, photo…) juste après
+   son affichage et donne l'impression que rien ne s'affiche. */
+function telechargerFeuilleSoins() {
+    if (!feuilleSoinsCourante) return;
+
+    const lien = document.createElement('a');
+    lien.href = feuilleSoinsCourante.url;
+    lien.download = feuilleSoinsCourante.nom || '';
+    lien.rel = 'noopener';
+    lien.style.display = 'none';
+
+    document.body.appendChild(lien);
+    lien.click();
+    document.body.removeChild(lien);
+}
+
+/* Bouton « Vérifier » : recherche l'assuré puis génère sa Feuille de soins. */
+async function verifierAssure() {
+    const champ = document.getElementById('assure-identifiant');
+    const bouton = document.getElementById('btn-verifier-assure');
+    const identifiant = champ ? champ.value.trim() : '';
+
+    /* Sécurité : même appelée au clavier, la vérification exige un hôpital. */
+    if (!etablissementSelectionne()) {
+        showAuthMessage('verification-message', t('msg_etablissement_requis'), true);
+        majEtatChampIdentifiant();
+        const selectEtab = document.getElementById('etablissement-select');
+        if (selectEtab) selectEtab.focus();
+        return;
+    }
+
+    if (!identifiant) {
+        showAuthMessage('verification-message', t('msg_identifiant_required'), true);
+        if (champ) champ.focus();
+        return;
+    }
+
+    reinitialiserResultatAssure();
+    showAuthMessage('verification-message', t('msg_verification_en_cours'));
+    if (bouton) bouton.disabled = true;
+
+    try {
+        const data = await apiRequest('/api/assures/verifier/', {
+            identifiant: identifiant,
+            etablissement: etablissementSelectionne(),
+        });
+        afficherAssureTrouve(data);
+
+        const association = data.etablissement_selectionne
+            ? `${t('msg_etablissement_associe')}${data.etablissement_selectionne}.`
+            : '';
+        showAuthMessage('verification-message',
+            association ? `${t('msg_assure_trouve')} ${association}` : t('msg_assure_trouve'));
+
+        telechargerFeuilleSoins();     // téléchargement automatique de la feuille
+    } catch (error) {
+        afficherAssureIntrouvable(error.message);
+        showAuthMessage('verification-message', error.message, true);
+    } finally {
+        /* L'état du bouton suit la sélection d'hôpital, pas l issu de l'appel. */
+        majEtatChampIdentifiant();
+    }
+}
+
+/* ============================================================
+   ÉTABLISSEMENTS DE SANTÉ CONVENTIONNÉS
+   Liste déroulante alimentée par /api/etablissements/ avec
+   recherche par nom. L'établissement choisi est renvoyé lors de
+   la vérification : il est alors inscrit sur la Feuille de soins.
+   ============================================================ */
+let etablissementsListe = [];           // résultat de la dernière recherche
+let rechercheEtablissementTimer = null;  // anti-rebond de la recherche
+
+/* Remplit la liste déroulante en conservant la sélection courante. */
+function remplirSelectEtablissements(etablissements) {
+    const select = document.getElementById('etablissement-select');
+    if (!select) return;
+
+    etablissementsListe = etablissements || [];
+    const selectionCourante = select.value;
+    select.innerHTML = '';
+
+    if (!etablissementsListe.length) {
+        const aucune = document.createElement('option');
+        aucune.value = '';
+        aucune.textContent = t('etablissement_aucun');
+        select.appendChild(aucune);
+        select.disabled = true;
+        return;
+    }
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = t('etablissement_option');
+    select.appendChild(placeholder);
+
+    etablissementsListe.forEach(etablissement => {
+        const option = document.createElement('option');
+        option.value = String(etablissement.id);
+        option.textContent = etablissement.libelle || etablissement.nom;
+        select.appendChild(option);
+    });
+
+    select.disabled = false;
+
+    /* La sélection survit au filtrage si l'établissement est toujours listé. */
+    if (selectionCourante
+        && etablissementsListe.some(e => String(e.id) === selectionCourante)) {
+        select.value = selectionCourante;
+    }
+}
+
+/* Charge la liste depuis l'API (recherche par nom côté serveur). */
+async function chargerEtablissements(requete = '') {
+    const select = document.getElementById('etablissement-select');
+
+    try {
+        const data = await apiGet(`/api/etablissements/?q=${encodeURIComponent(requete)}`);
+        remplirSelectEtablissements(data.etablissements || []);
+    } catch (error) {
+        etablissementsListe = [];
+        if (!select) return;
+        select.innerHTML = '';
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = t('etablissement_indisponible');
+        select.appendChild(option);
+        select.disabled = true;
+    }
+}
+
+/* Établissement à associer à la Feuille de soins : la sélection de la liste,
+   ou — à défaut — un nom saisi qui correspond exactement à un établissement. */
+function etablissementSelectionne() {
+    const select = document.getElementById('etablissement-select');
+    if (select && select.value) return select.value;
+
+    const recherche = document.getElementById('etablissement-recherche');
+    const saisie = recherche ? recherche.value.trim() : '';
+    if (!saisie) return '';
+
+    const cible = normaliserEtablissement(saisie);
+    const trouve = etablissementsListe.find(etablissement =>
+        normaliserEtablissement(etablissement.nom) === cible
+        || normaliserEtablissement(etablissement.libelle || '') === cible);
+
+    return trouve ? String(trouve.id) : '';
+}
+
+/* Accents, casse et ponctuation sont ignorés (comme côté serveur). */
+function normaliserEtablissement(texte) {
+    return String(texte || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/gi, ' ')
+        .trim()
+        .toLowerCase();
+}
+
+/* Le choix de l'établissement est obligatoire : tant qu'aucun hôpital
+   n'est sélectionné, la saisie du NNI / INAM et le bouton « Vérifier »
+   restent désactivés. Appelée au démarrage et à chaque changement. */
+function majEtatChampIdentifiant() {
+    const champ = document.getElementById('assure-identifiant');
+    const bouton = document.getElementById('btn-verifier-assure');
+    const avertissement = document.getElementById('assure-identifiant-avertissement');
+
+    const choisi = Boolean(etablissementSelectionne());
+
+    if (champ) champ.disabled = !choisi;
+    if (bouton) bouton.disabled = !choisi;
+    if (avertissement) {
+        avertissement.hidden = choisi;
+        avertissement.textContent = choisi ? '' : t('msg_etablissement_requis');
+    }
+}
+
+/* Branche la recherche par nom et la liste déroulante. */
+function initEtablissements() {
+    const recherche = document.getElementById('etablissement-recherche');
+    const select    = document.getElementById('etablissement-select');
+    if (!recherche || !select) return;
+
+    chargerEtablissements('');
+
+    recherche.addEventListener('input', () => {
+        clearTimeout(rechercheEtablissementTimer);
+        rechercheEtablissementTimer = setTimeout(
+            () => chargerEtablissements(recherche.value.trim()), 250);
+    });
+
+    /* Le nom choisi est recopié dans la recherche : la saisie reste consultable. */
+    select.addEventListener('change', () => {
+        const choisi = etablissementsListe.find(e => String(e.id) === select.value);
+        if (choisi) recherche.value = choisi.nom || '';
+        majEtatChampIdentifiant();
+    });
+
+    /* Le champ NNI / INAM reste verrouillé tant qu'aucun hôpital n'est choisi. */
+    majEtatChampIdentifiant();
+}
+
+/* La touche Entrée dans le champ NNI/INAM lance la vérification. */
+function initRechercheAssure() {
+    const champ = document.getElementById('assure-identifiant');
+    if (!champ) return;
+
+    champ.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            verifierAssure();
+        }
     });
 }
 

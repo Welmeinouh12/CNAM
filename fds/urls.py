@@ -12,4 +12,14 @@ urlpatterns = [
     # Vérification par code e-mail (optionnelle, non requise pour s'inscrire)
     path('api/otp/send/', views.otp_send_view, name='otp_send'),
     path('api/otp/verify/', views.otp_verify_view, name='otp_verify'),
+    # Établissements de santé conventionnés (liste déroulante du formulaire)
+    path('api/etablissements/', views.etablissements_view, name='etablissements'),
+    # Assuré : recherche par NNI / INAM puis Feuille de soins PDF
+    path('api/assures/verifier/', views.verifier_assure_view, name='verifier_assure'),
+    path('api/assures/<str:nni>/photo/', views.assure_photo_view, name='assure_photo'),
+    path(
+        'api/assures/<str:nni>/feuille-de-soins/',
+        views.feuille_de_soins_pdf_view,
+        name='feuille_de_soins_pdf',
+    ),
 ]

@@ -17,6 +17,30 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _charger_env(chemin):
+    """Charge un fichier `.env` dans os.environ sans dépendance externe.
+
+    Les variables déjà définies dans l'environnement sont prioritaires, et les
+    lignes vides ou commentées (`#`) sont ignorées, comme pour un `.env`
+    classique. Le but est de pouvoir configurer PostgreSQL une seule fois dans
+    un fichier, au lieu de saisir les variables à chaque démarrage.
+    """
+    if not chemin.is_file():
+        return
+    for ligne in chemin.read_text(encoding='utf-8').splitlines():
+        ligne = ligne.strip()
+        if not ligne or ligne.startswith('#') or '=' not in ligne:
+            continue
+        cle, _, valeur = ligne.partition('=')
+        cle = cle.strip()
+        valeur = valeur.strip().strip('"').strip("'")
+        if cle and cle not in os.environ:
+            os.environ[cle] = valeur
+
+
+_charger_env(BASE_DIR / '.env')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
@@ -26,7 +50,7 @@ SECRET_KEY = 'django-insecure-!0b)d2_5fsb+4gb5b6j4(o7s)7qnq_a#2z2dn2^4s1kcdl0z)g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.100.252', 'localhost', '127.0.0.1' ]
+ALLOWED_HOSTS = ['192.168.100.252','10.129.36.209','192.168.123.209', 'localhost', '127.0.0.1' ]
 
 
 # Application definition
@@ -49,7 +73,7 @@ REST_FRAMEWORK = {
         'otp_send': '30/minute',
         'register': '20/minute',
         'login': '20/minute',
-
+        'assure_verify': '60/minute',
     },
 }
 
@@ -87,13 +111,46 @@ WSGI_APPLICATION = 'mon_projet.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+#
+# Par défaut le projet démarre sur SQLite (aucune installation requise).
+# Pour interroger la base PostgreSQL qui contient déjà les assurés, copiez ce
+# fichier en « .env » à la racine du projet (c'est-à-dire dans le dossier
+# contenant manage.py), puis complétez CNAM_DB_PASSWORD.
+#
+# Le fichier .env est lu automatiquement par settings.py : plus aucune variable
+# n'a besoin d'être saisie dans le terminal avant « python manage.py runserver ».
+#
+# Vérification rapide de la configuration :
+#     python manage.py verifier_base 0124330042
+#
+# Les valeurs de connexion se placent dans le fichier .env (voir .env.example).
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+CNAM_DB_ENGINE = os.getenv('CNAM_DB_ENGINE', 'sqlite').strip().lower()
+
+# Nom de la table des assurés dans la base (lu par `fds.models.Assure.Meta`).
+# « assure » si la table a été créée au singulier dans pgAdmin.
+CNAM_ASSURES_TABLE = os.getenv('CNAM_ASSURES_TABLE', 'assures').strip() or 'assures'
+
+if CNAM_DB_ENGINE in ('postgres', 'postgresql', 'psycopg'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('CNAM_DB_NAME', 'cnam'),
+            'USER': os.getenv('CNAM_DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('CNAM_DB_PASSWORD', ''),
+            'HOST': os.getenv('CNAM_DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('CNAM_DB_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.getenv('CNAM_DB_CONN_MAX_AGE', '60')),
+            'OPTIONS': {'client_encoding': 'UTF8'},
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -150,3 +207,60 @@ if EMAIL_BACKEND_NAME == 'django.core.mail.backends.smtp.EmailBackend':
         'use_tls': os.getenv('CNAM_SMTP_USE_TLS', 'true').lower() == 'true',
     }
 DEFAULT_FROM_EMAIL = os.getenv('CNAM_DEFAULT_FROM_EMAIL', 'no-reply@cnam.local')
+
+
+# ===========================================================================
+# FEUILLE DE SOINS  (recherche de l'assuré + génération du PDF)
+# ===========================================================================
+# Le modèle PDF officiel est la référence : il est recopié tel quel et seules
+# les données dynamiques de PostgreSQL sont posées dessus (voir
+# fds/feuille_soins_layout.py pour le plan de pose). Tant que le fichier n'est
+# pas déposé dans le projet, une reproduction fidèle du modèle est générée.
+
+# Nom du fichier PDF modèle (à déposer à cet emplacement).
+CNAM_FEUILLE_SOINS_MODELE = os.getenv(
+    'CNAM_FEUILLE_SOINS_MODELE',
+    str(BASE_DIR / 'fds' / 'static' / 'fds' / 'feuille_de_soins_modele.pdf'),
+)
+
+# Image PNG modèle (fond de page de la feuille, format A4 910 x 1287 px).
+# Utilisée si le PDF officiel n'est pas déposé : la pose des données
+# dynamiques s'applique alors par-dessus l'image (voir fds/feuille_soins_pdf.py).
+CNAM_FEUILLE_SOINS_MODELE_IMAGE = os.getenv(
+    'CNAM_FEUILLE_SOINS_MODELE_IMAGE',
+    str(BASE_DIR / 'fds' / 'static' / 'fds' / 'Feuille_text.png'),
+)
+
+# Logo apposé dans l'en-tête (gauche et droite) de la reproduction du modèle.
+CNAM_FEUILLE_SOINS_LOGO = str(BASE_DIR / 'fds' / 'static' / 'images' / 'logo.png')
+
+# Ligne d'en-tête "centre" imprimée sous le numéro de feuille de soins.
+CNAM_FEUILLE_SOINS_CENTRE = os.getenv(
+    'CNAM_FEUILLE_SOINS_CENTRE',
+    "Centre Hospitalier National (ex CardioLogie (CNC))",
+)
+
+# Police TTF utilisée pour le texte arabe (laisser vide pour la détection
+# automatique : Arial / Tahoma / Segoe UI sous Windows, Noto sous Linux).
+CNAM_FEUILLE_SOINS_FONT = os.getenv('CNAM_FEUILLE_SOINS_FONT', '')
+
+# Numéro de la feuille de soins lorsqu'il n'est pas fourni par PostgreSQL.
+# Champs disponibles : {nni}, {inam}, {annee}, {serie}, {serie_courte},
+# {jour}, {mois}. Exemple de rendu : 336042/2026/PH33604.
+CNAM_FEUILLE_SOINS_NUMERO = os.getenv(
+    'CNAM_FEUILLE_SOINS_NUMERO', '{serie}/{annee}/PH{serie_courte}'
+)
+
+# Contenu du QR code (code scanné). Champs disponibles : {nni}, {inam},
+# {nom}, {prenom}, {nom_complet}, {date_naissance}, {age}, {sexe},
+# {numero_carte}, {date_soins}, {date_soins_iso}, {numero_feuille}.
+# La colonne `code_qr` de la table des assurés est prioritaire si elle est remplie.
+CNAM_QR_CONTENU = os.getenv(
+    'CNAM_QR_CONTENU',
+    '{nni}|{inam}|{nom}|{prenom}|{date_naissance}|{date_soins_iso}',
+)
+
+# Racine des photos stockées sur le disque (utilisée si la table PostgreSQL
+# contient un chemin de fichier dans la colonne photo_path au lieu du binaire).
+CNAM_PHOTO_ROOT = os.getenv('CNAM_PHOTO_ROOT', str(BASE_DIR / 'photos_assures'))
+
