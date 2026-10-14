@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "votre_projet/wsgi.py",
+      "src": "mon_projet/wsgi.py",
       "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+      "config": { "runtime": "python3.12" }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "votre_projet/wsgi.py"
+      "dest": "mon_projet/wsgi.py"
     }
   ]
 }

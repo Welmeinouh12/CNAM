@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,12 +46,28 @@ _charger_env(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!0b)d2_5fsb+4gb5b6j4(o7s)7qnq_a#2z2dn2^4s1kcdl0z)g'
+SECRET_KEY = os.getenv('SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').strip().lower() in ('1', 'true', 'yes', 'on')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ValueError('SECRET_KEY must be set when DEBUG=False.')
+    SECRET_KEY = 'django-insecure-local-development-only'
 
-ALLOWED_HOSTS = ['.vercel.app','10.129.36.209','192.168.123.209','192.168.0.116', 'localhost', '127.0.0.1' ]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        'ALLOWED_HOSTS',
+        '.vercel.app,10.129.36.209,192.168.123.209,192.168.0.116,localhost,127.0.0.1',
+    ).split(',')
+    if host.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.vercel.app').split(',')
+    if origin.strip()
+]
 
 
 # Application definition
@@ -111,38 +128,19 @@ WSGI_APPLICATION = 'mon_projet.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-#
-# Par défaut le projet démarre sur SQLite (aucune installation requise).
-# Pour interroger la base PostgreSQL qui contient déjà les assurés, copiez ce
-# fichier en « .env » à la racine du projet (c'est-à-dire dans le dossier
-# contenant manage.py), puis complétez CNAM_DB_PASSWORD.
-#
-# Le fichier .env est lu automatiquement par settings.py : plus aucune variable
-# n'a besoin d'être saisie dans le terminal avant « python manage.py runserver ».
-#
-# Vérification rapide de la configuration :
-#     python manage.py verifier_base 0124330042
-#
-# Les valeurs de connexion se placent dans le fichier .env (voir .env.example).
-
-CNAM_DB_ENGINE = os.getenv('CNAM_DB_ENGINE', 'sqlite').strip().lower()
-
-# Nom de la table des assurés dans la base (lu par `fds.models.Assure.Meta`).
-# « assure » si la table a été créée au singulier dans pgAdmin.
+# DATABASE_URL selects PostgreSQL (Supabase in production); no URL means SQLite.
 CNAM_ASSURES_TABLE = os.getenv('CNAM_ASSURES_TABLE', 'assures').strip() or 'assures'
 
-if CNAM_DB_ENGINE in ('postgres', 'postgresql', 'psycopg'):
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
+if DATABASE_URL:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('CNAM_DB_NAME', 'cnam'),
-            'USER': os.getenv('CNAM_DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('CNAM_DB_PASSWORD', ''),
-            'HOST': os.getenv('CNAM_DB_HOST', '127.0.0.1'),
-            'PORT': os.getenv('CNAM_DB_PORT', '5432'),
-            'CONN_MAX_AGE': int(os.getenv('CNAM_DB_CONN_MAX_AGE', '60')),
-            'OPTIONS': {'client_encoding': 'UTF8'},
+            **dj_database_url.parse(
+                DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+                ssl_require=True,
+            ),
         }
     }
 else:
