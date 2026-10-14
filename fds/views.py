@@ -3,6 +3,7 @@
 import json
 import logging
 import secrets
+from urllib.parse import urlencode
 
 
 from django.conf import settings
@@ -26,12 +27,16 @@ from .services import (
     lister_etablissements,
     nom_fichier_feuille_soins,
     rechercher_assure,
+    rechercher_etablissement,
 )
 from .services import _sexe_texte
 
 logger = logging.getLogger(__name__)
 
 MIN_PASSWORD_LENGTH = 8
+MESSAGE_ETABLISSEMENT_REQUIS = (
+    "Sélectionnez un hôpital ou un centre de santé avant de générer la Feuille de soins."
+)
 
 
 def login_view(request):
@@ -436,6 +441,12 @@ def verifier_assure_view(request):
             status=400,
         )
 
+    if not str(payload.get('etablissement') or '').strip():
+        return JsonResponse(
+            {'trouve': False, 'error': MESSAGE_ETABLISSEMENT_REQUIS},
+            status=400,
+        )
+
     identifiant = str(
         payload.get('identifiant') or payload.get('nni') or payload.get('inam') or ''
     ).strip()
@@ -453,13 +464,7 @@ def verifier_assure_view(request):
     assure = rechercher_assure(identifiant)
     if assure is None:
         return JsonResponse(
-            {
-                'trouve': False,
-                'error': (
-                    "Assuré introuvable : aucun assuré ne correspond au numéro "
-                    f"« {identifiant} ». Vérifiez le NNI ou le numéro INAM saisi."
-                ),
-            },
+            {'trouve': False, 'error': 'Assuré introuvable'},
             status=404,
         )
 
@@ -474,22 +479,28 @@ def verifier_assure_view(request):
         )
 
     donnees = donnees_feuille_soins(assure, timezone.localtime())
+    donnees['centre_hospitalier'] = etablissement.libelle
+    resume_assure = _resume_assure(assure)
+    resume_assure['centre_hospitalier'] = etablissement.libelle
+    feuille_url = reverse('feuille_de_soins_pdf', args=[assure.nni])
+    parametres_pdf = urlencode({'etablissement': etablissement.pk})
+    feuille_url = f'{feuille_url}?{parametres_pdf}'
 
     return JsonResponse(
         {
             'trouve': True,
-            'message': f"Assuré trouvé : {assure.nom_complet}.",
+            'message': 'Assuré trouvé',
             'centre_hospitalier': donnees['centre_hospitalier'],
             'etablissement_selectionne': (
                 etablissement.libelle if etablissement is not None else ''
             ),
-            'assure': _resume_assure(assure),
+            'assure': resume_assure,
             'date_soins': donnees['date_soins_texte'],
             'numero_feuille': donnees['numero_feuille'],
             'photo_disponible': bool(donnees['photo']),
             'photo_url': reverse('assure_photo', args=[assure.nni]),
             'qr_contenu': donnees['qr_contenu'],
-            'feuille_url': reverse('feuille_de_soins_pdf', args=[assure.nni]),
+            'feuille_url': feuille_url,
             'feuille_nom': nom_fichier_feuille_soins(assure),
         }
     )
@@ -514,14 +525,25 @@ def assure_photo_view(request, nni):
 @require_GET
 def feuille_de_soins_pdf_view(request, nni):
     """Génère et renvoie la Feuille de soins PDF d'un assuré (NNI ou INAM)."""
+    etablissement = rechercher_etablissement(request.GET.get('etablissement'))
+    if etablissement is None:
+        return JsonResponse(
+            {'error': MESSAGE_ETABLISSEMENT_REQUIS},
+            status=400,
+        )
+
     assure = rechercher_assure(nni)
     if assure is None:
         return JsonResponse(
-            {'trouve': False, 'error': "Assuré introuvable : feuille de soins non générée."},
+            {'trouve': False, 'error': 'Assuré introuvable'},
             status=404,
         )
 
     donnees = donnees_feuille_soins(assure, timezone.localtime())
+    donnees['centre_hospitalier'] = etablissement.libelle
+    etablissement = rechercher_etablissement(request.GET.get('etablissement'))
+    if etablissement is not None:
+        donnees['centre_hospitalier'] = etablissement.libelle
 
     # Import paresseux : si une dépendance PDF manque, seul cet endpoint est
     # concerné (le reste du portail continue de fonctionner).

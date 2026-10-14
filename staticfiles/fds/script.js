@@ -99,15 +99,15 @@ const translations = {
         msg_date_soins:     "Date des soins : ",
         msg_feuille_numero: "Feuille n° ",
         /* Liste des établissements de santé conventionnés */
-        etablissement_label:    "HÔPITAL OU CENTRE DE SANTÉ",
+        etablissement_label:    "Choisir l’hôpital",
         etablissement_placeholder: "Rechercher un établissement par nom (ex : Cheikh Zaid)",
-        etablissement_option:   "— Sélectionner un établissement conventionné —",
+        etablissement_option:   "— Choisir l’hôpital —",
         etablissement_aucun:    "Aucun établissement ne correspond à cette recherche.",
         etablissement_indisponible: "Liste des établissements indisponible.",
         etablissement_aide:     "L'établissement sélectionné est inscrit automatiquement sur votre Feuille de soins.",
         lbl_centre_hospitalier: "Établissement",
         msg_etablissement_associe: "Établissement associé à la Feuille de soins : ",
-        msg_etablissement_requis: "Sélectionnez d'abord un hôpital ou un centre de santé : ce choix est obligatoire avant de saisir le NNI ou l'INAM.",
+        msg_etablissement_requis: "Veuillez d’abord choisir l’hôpital ou le centre de santé : ce choix est obligatoire avant de saisir le NNI ou le numéro d’assuré.",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - Espace Assuré",
         register_line1:     "Créer votre compte",
@@ -237,15 +237,15 @@ const translations = {
         msg_date_soins:     "تاريخ العلاج: ",
         msg_feuille_numero: "ورقة رقم ",
         /* قائمة المؤسسات الصحية المتعاقدة */
-        etablissement_label:    "المستشفى أو مركز الصحة",
+        etablissement_label:    "اختر المستشفى",
         etablissement_placeholder: "ابحث عن مؤسسة بالاسم (مثال: شيخ زايد)",
-        etablissement_option:   "— اختر مؤسسة متعاقدة —",
+        etablissement_option:   "— اختر المستشفى —",
         etablissement_aucun:    "لا توجد مؤسسة مطابقة لهذا البحث.",
         etablissement_indisponible: "قائمة المؤسسات غير متاحة.",
         etablissement_aide:     "تُسجَّل المؤسسة المختارة تلقائياً في ورقة العلاج الخاصة بكم.",
         lbl_centre_hospitalier: "المؤسسة",
         msg_etablissement_associe: "المؤسسة المرتبطة بورقة العلاج: ",
-        msg_etablissement_requis: "اختر أولاً المستشفى أو مركز الصحة: هذا الاختيار إلزامي قبل إدخال رقم التعريف الوطني أو رقم المؤمَّن.",
+        msg_etablissement_requis: "اختر أولا المستشفى أو مركز الصحة: هذا الاختيار إلزامي قبل إدخال رقم التعريف الوطني أو رقم المؤمن",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - فضاء المؤمَّن",
         register_line1:     "إنشاء حسابك",
@@ -425,6 +425,17 @@ function setLang(lang) {
             el.placeholder = t[key];
         }
     });
+
+    const avertissementEtablissement = document.getElementById('assure-identifiant-avertissement');
+    if (avertissementEtablissement && !avertissementEtablissement.hidden) {
+        avertissementEtablissement.textContent = t.msg_etablissement_requis;
+    }
+
+    const messageVerification = document.getElementById('verification-message');
+    if (messageVerification && [translations.fr.msg_etablissement_requis, translations.ar.msg_etablissement_requis]
+        .includes(messageVerification.textContent.trim())) {
+        messageVerification.textContent = t.msg_etablissement_requis;
+    }
 
     /* Navigation labels do not use data-i18n attributes. */
     const portailTab = document.getElementById('btn-portail-tab');
@@ -1021,6 +1032,7 @@ function remplirSelectEtablissements(etablissements) {
 
     const placeholder = document.createElement('option');
     placeholder.value = '';
+    placeholder.setAttribute('data-i18n', 'etablissement_option');
     placeholder.textContent = t('etablissement_option');
     select.appendChild(placeholder);
 

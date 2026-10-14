@@ -94,20 +94,28 @@ const translations = {
         unit_years:         "ans",
         msg_identifiant_required: "Saisissez un NNI ou un numéro d'Assuré INAM.",
         msg_verification_en_cours: "Vérification dans la base de l'assurance maladie…",
-        msg_assure_trouve:  "Assuré trouvé. Votre Feuille de soins a été générée et le téléchargement démarre.",
+        msg_assure_trouve:  "Assuré trouvé",
         msg_assure_photo_absente: "Aucune photo enregistrée pour cet assuré.",
         msg_date_soins:     "Date des soins : ",
         msg_feuille_numero: "Feuille n° ",
         /* Liste des établissements de santé conventionnés */
-        etablissement_label:    "HÔPITAL OU CENTRE DE SANTÉ",
+        etablissement_label:    "Choisir l’hôpital",
         etablissement_placeholder: "Rechercher un établissement par nom (ex : Cheikh Zaid)",
-        etablissement_option:   "— Sélectionner un établissement conventionné —",
+        etablissement_option:   "— Choisir l’hôpital —",
         etablissement_aucun:    "Aucun établissement ne correspond à cette recherche.",
         etablissement_indisponible: "Liste des établissements indisponible.",
         etablissement_aide:     "L'établissement sélectionné est inscrit automatiquement sur votre Feuille de soins.",
+        etablissement_conventionne: "Conventionné CNAM",
+        etablissement_aria:    "Liste des hôpitaux et centres de santé conventionnés",
+        identification_cnam:   "Identification nationale & CNAM",
+        nni_inam_label:        "NNI OU INAM",
+        nni_inam_help:         "Numéro National d'Identification (NNI) ou Numéro d'Assuré INAM. Le NNI est obligatoire pour toute demande.",
+        nni_inam_placeholder:  "Ex: 1092837465 OU 180612797938-E",
+        feuille_download:      "Télécharger la Feuille de soins",
+        choose_language:       "Choisir la langue",
         lbl_centre_hospitalier: "Établissement",
         msg_etablissement_associe: "Établissement associé à la Feuille de soins : ",
-        msg_etablissement_requis: "Sélectionnez d'abord un hôpital ou un centre de santé : ce choix est obligatoire avant de saisir le NNI ou l'INAM.",
+        msg_etablissement_requis: "Veuillez d’abord choisir l’hôpital ou le centre de santé : ce choix est obligatoire avant de saisir le NNI ou le numéro d’assuré.",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - Espace Assuré",
         register_line1:     "Créer votre compte",
@@ -232,20 +240,28 @@ const translations = {
         unit_years:         "سنة",
         msg_identifiant_required: "أدخل الرقم الوطني للتعريف أو رقم المؤمَّن INAM.",
         msg_verification_en_cours: "جارٍ التحقق في قاعدة بيانات التأمين الصحي…",
-        msg_assure_trouve:  "تم العثور على المؤمَّن. تم إنشاء ورقة العلاج وبدأ التحميل.",
+        msg_assure_trouve:  "تم العثور على المؤمَّن",
         msg_assure_photo_absente: "لا توجد صورة مسجّلة لهذا المؤمَّن.",
         msg_date_soins:     "تاريخ العلاج: ",
         msg_feuille_numero: "ورقة رقم ",
         /* قائمة المؤسسات الصحية المتعاقدة */
-        etablissement_label:    "المستشفى أو مركز الصحة",
+        etablissement_label:    "اختر المستشفى",
         etablissement_placeholder: "ابحث عن مؤسسة بالاسم (مثال: شيخ زايد)",
-        etablissement_option:   "— اختر مؤسسة متعاقدة —",
+        etablissement_option:   "— اختر المستشفى —",
         etablissement_aucun:    "لا توجد مؤسسة مطابقة لهذا البحث.",
         etablissement_indisponible: "قائمة المؤسسات غير متاحة.",
         etablissement_aide:     "تُسجَّل المؤسسة المختارة تلقائياً في ورقة العلاج الخاصة بكم.",
+        etablissement_conventionne: "متعاقد مع الصندوق الوطني",
+        etablissement_aria:    "قائمة المستشفيات والمراكز الصحية المتعاقدة",
+        identification_cnam:   "التعريف الوطني والصندوق",
+        nni_inam_label:        "رقم التعريف الوطني أو رقم المؤمَّن INAM",
+        nni_inam_help:         "رقم التعريف الوطني (NNI) أو رقم المؤمَّن لدى INAM. رقم NNI إلزامي لكل طلب.",
+        nni_inam_placeholder:  "مثال: 1092837465 أو 180612797938-E",
+        feuille_download:      "تحميل ورقة العلاج",
+        choose_language:       "اختر اللغة",
         lbl_centre_hospitalier: "المؤسسة",
         msg_etablissement_associe: "المؤسسة المرتبطة بورقة العلاج: ",
-        msg_etablissement_requis: "اختر أولاً المستشفى أو مركز الصحة: هذا الاختيار إلزامي قبل إدخال رقم التعريف الوطني أو رقم المؤمَّن.",
+        msg_etablissement_requis: "اختر أولا المستشفى أو مركز الصحة: هذا الاختيار إلزامي قبل إدخال رقم التعريف الوطني أو رقم المؤمن",
         /* Compléments : textes présents dans les pages */
         page_title:         "CNAM - فضاء المؤمَّن",
         register_line1:     "إنشاء حسابك",
@@ -310,6 +326,7 @@ const frToAr = (() => {
 /* Mémoire des textes d'origine (pour revenir au français) */
 const originalTexts = new WeakMap();
 const originalPlaceholders = new WeakMap();
+const originalAttributes = new WeakMap();
 
 function textNodesIn(root) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -367,6 +384,29 @@ function translatePagePlaceholders(dictionary) {
     });
 }
 
+function translatePageAttributes(dictionary) {
+    document.querySelectorAll('[aria-label], [title]').forEach(element => {
+        ['aria-label', 'title'].forEach(attribute => {
+            if (!element.hasAttribute(attribute)) return;
+
+            if (!originalAttributes.has(element)) originalAttributes.set(element, {});
+            const originals = originalAttributes.get(element);
+            if (!Object.prototype.hasOwnProperty.call(originals, attribute)) {
+                originals[attribute] = element.getAttribute(attribute);
+            }
+
+            const original = originals[attribute];
+            if (!dictionary) {
+                element.setAttribute(attribute, original);
+                return;
+            }
+
+            const translated = dictionary[normalizeText(original)];
+            if (translated !== undefined) element.setAttribute(attribute, translated);
+        });
+    });
+}
+
 /* Traduit l'onglet du navigateur */
 function translatePageTitle(dictionary) {
     const original = translatePageTitle.original || document.title;
@@ -416,7 +456,9 @@ function setLang(lang) {
     /* 3bis. traduction automatique de tous les textes de la page */
     translatePageTexts(currentLang === 'fr' ? null : frToAr);
     translatePagePlaceholders(currentLang === 'fr' ? null : frToAr);
+    translatePageAttributes(currentLang === 'fr' ? null : frToAr);
     translatePageTitle(currentLang === 'fr' ? null : frToAr);
+    traduireOptionsEtablissements();
 
     /* 4. translate placeholder attributes */
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
@@ -425,6 +467,17 @@ function setLang(lang) {
             el.placeholder = t[key];
         }
     });
+
+    const avertissementEtablissement = document.getElementById('assure-identifiant-avertissement');
+    if (avertissementEtablissement && !avertissementEtablissement.hidden) {
+        avertissementEtablissement.textContent = t.msg_etablissement_requis;
+    }
+
+    const messageVerification = document.getElementById('verification-message');
+    if (messageVerification && [translations.fr.msg_etablissement_requis, translations.ar.msg_etablissement_requis]
+        .includes(messageVerification.textContent.trim())) {
+        messageVerification.textContent = t.msg_etablissement_requis;
+    }
 
     /* Navigation labels do not use data-i18n attributes. */
     const portailTab = document.getElementById('btn-portail-tab');
@@ -910,7 +963,7 @@ function afficherAssureTrouve(data) {
     if (resultat) resultat.classList.remove('hidden');
 }
 
-function afficherAssureIntrouvable(message) {
+function afficherAssureIntrouvable() {
     const resultat = document.getElementById('assure-resultat');
     const erreur   = document.getElementById('assure-introuvable');
     const titre    = document.getElementById('assure-erreur-titre');
@@ -920,7 +973,7 @@ function afficherAssureIntrouvable(message) {
     if (resultat) resultat.classList.add('hidden');
 
     if (titre) titre.textContent = t('assure_not_found_title');
-    if (texte) texte.textContent = message || '';
+    if (texte) texte.textContent = '';
     if (erreur) erreur.classList.remove('hidden');
 }
 
@@ -976,16 +1029,16 @@ async function verifierAssure() {
         });
         afficherAssureTrouve(data);
 
-        const association = data.etablissement_selectionne
-            ? `${t('msg_etablissement_associe')}${data.etablissement_selectionne}.`
-            : '';
-        showAuthMessage('verification-message',
-            association ? `${t('msg_assure_trouve')} ${association}` : t('msg_assure_trouve'));
+        showAuthMessage('verification-message', t('msg_assure_trouve'));
 
         telechargerFeuilleSoins();     // téléchargement automatique de la feuille
     } catch (error) {
-        afficherAssureIntrouvable(error.message);
-        showAuthMessage('verification-message', error.message, true);
+        if (error.message === 'Assuré introuvable') {
+            afficherAssureIntrouvable();
+            showAuthMessage('verification-message', '');
+        } else {
+            showAuthMessage('verification-message', error.message, true);
+        }
     } finally {
         /* L'état du bouton suit la sélection d'hôpital, pas l issu de l'appel. */
         majEtatChampIdentifiant();
@@ -1000,6 +1053,78 @@ async function verifierAssure() {
    ============================================================ */
 let etablissementsListe = [];           // résultat de la dernière recherche
 let rechercheEtablissementTimer = null;  // anti-rebond de la recherche
+
+const termesEtablissementAr = [
+    ["Centre Hospitalier de la Mère et de l'Enfant", 'مستشفى الأم والطفل'],
+    ['Centre Hospitalier Régional', 'المركز الاستشفائي الجهوي'],
+    ['Centre Hospitalier National', 'المركز الاستشفائي الوطني'],
+    ['Centre Hospitalier Spécialisé', 'المركز الاستشفائي المتخصص'],
+    ['Hôpital Militaire', 'المستشفى العسكري'],
+    ['Centre National de Cardiologie', 'المركز الوطني لأمراض القلب'],
+    ['Centre National d’Oncologie', 'المركز الوطني لعلاج الأورام'],
+    ['Centre National d\'Oncologie', 'المركز الوطني لعلاج الأورام'],
+    ['Centre Hospitalier', 'المركز الاستشفائي'],
+    ['Centre médical', 'مركز طبي'],
+    ['Centre de santé', 'مركز صحي'],
+    ['Hôpital général', 'مستشفى عام'],
+    ['Hôpital National', 'المستشفى الوطني'],
+    ['Cheikh Zayed', 'الشيخ زايد'],
+    ['Amitié', 'الصداقة'],
+    ['Pédiatrie', 'طب الأطفال'],
+    ['gynécologie', 'أمراض النساء'],
+    ['obstétrique', 'التوليد'],
+    ['Soins généraux', 'الرعاية العامة'],
+    ['chirurgie', 'الجراحة'],
+    ['urgences', 'الطوارئ'],
+    ['Spécialités cardiovasculaires', 'تخصصات القلب والأوعية الدموية'],
+    ['Traitement du cancer et radiothérapie', 'علاج السرطان والعلاج الإشعاعي'],
+    ['Neuro-psychiatrie et santé mentale', 'الطب النفسي العصبي والصحة النفسية'],
+    ['Hôpital', 'مستشفى'],
+    ['Clinique', 'عيادة'],
+    ['Dispensaire', 'مستوصف'],
+    ['Nouakchott', 'نواكشوط'],
+    ['Nouadhibou', 'نواذيبو'],
+    ['Aïoun', 'العيون'],
+    ['Aleg', 'ألاك'],
+    ['Akjoujt', 'أكجوجت'],
+    ['Atar', 'أطار'],
+    ['Kaédi', 'كيهيدي'],
+    ['Kiffa', 'كيفه'],
+    ['Néma', 'النعمة'],
+    ['Rosso', 'روصو'],
+    ['Sélibaby', 'سيلبابي'],
+    ['Tidjikja', 'تجكجة'],
+    ['Zouérate', 'ازويرات'],
+    ['Zouerate', 'ازويرات'],
+    [" de l'", ' في '],
+    [' de l’', ' في '],
+    [' de ', ' في '],
+    [" d'", ' في '],
+    [' d’', ' في '],
+    [' et ', ' و '],
+];
+
+function traduireLibelleEtablissement(libelle) {
+    return termesEtablissementAr.reduce(
+        (texte, [francais, arabe]) => texte.replace(
+            new RegExp(francais.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+            arabe,
+        ),
+        libelle,
+    );
+}
+
+function traduireOptionsEtablissements() {
+    const select = document.getElementById('etablissement-select');
+    if (!select) return;
+
+    select.querySelectorAll('option[data-libelle-fr]').forEach(option => {
+        const libelleFrancais = option.dataset.libelleFr;
+        option.textContent = currentLang === 'ar'
+            ? traduireLibelleEtablissement(libelleFrancais)
+            : libelleFrancais;
+    });
+}
 
 /* Remplit la liste déroulante en conservant la sélection courante. */
 function remplirSelectEtablissements(etablissements) {
@@ -1021,15 +1146,18 @@ function remplirSelectEtablissements(etablissements) {
 
     const placeholder = document.createElement('option');
     placeholder.value = '';
+    placeholder.setAttribute('data-i18n', 'etablissement_option');
     placeholder.textContent = t('etablissement_option');
     select.appendChild(placeholder);
 
     etablissementsListe.forEach(etablissement => {
         const option = document.createElement('option');
         option.value = String(etablissement.id);
-        option.textContent = etablissement.libelle || etablissement.nom;
+        option.dataset.libelleFr = etablissement.libelle || etablissement.nom;
         select.appendChild(option);
     });
+
+    traduireOptionsEtablissements();
 
     select.disabled = false;
 
@@ -1059,32 +1187,10 @@ async function chargerEtablissements(requete = '') {
     }
 }
 
-/* Établissement à associer à la Feuille de soins : la sélection de la liste,
-   ou — à défaut — un nom saisi qui correspond exactement à un établissement. */
+/* Seule une option choisie dans la liste constitue une sélection valide. */
 function etablissementSelectionne() {
     const select = document.getElementById('etablissement-select');
-    if (select && select.value) return select.value;
-
-    const recherche = document.getElementById('etablissement-recherche');
-    const saisie = recherche ? recherche.value.trim() : '';
-    if (!saisie) return '';
-
-    const cible = normaliserEtablissement(saisie);
-    const trouve = etablissementsListe.find(etablissement =>
-        normaliserEtablissement(etablissement.nom) === cible
-        || normaliserEtablissement(etablissement.libelle || '') === cible);
-
-    return trouve ? String(trouve.id) : '';
-}
-
-/* Accents, casse et ponctuation sont ignorés (comme côté serveur). */
-function normaliserEtablissement(texte) {
-    return String(texte || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/gi, ' ')
-        .trim()
-        .toLowerCase();
+    return select ? select.value : '';
 }
 
 /* Le choix de l'établissement est obligatoire : tant qu'aucun hôpital

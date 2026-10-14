@@ -809,7 +809,15 @@ class AssureApiTestCase(ApiTestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.verifier_url = reverse('verifier_assure')
-        cls.feuille_url = reverse('feuille_de_soins_pdf', args=['0124336042'])
+        cls.etablissement = Etablissement.objects.create(
+            nom='Hôpital de test',
+            type_etablissement=Etablissement.TYPE_HOPITAL,
+            ville='Nouakchott',
+        )
+        cls.feuille_url = (
+            f"{reverse('feuille_de_soins_pdf', args=['0124336042'])}"
+            f"?etablissement={cls.etablissement.pk}"
+        )
         cls.photo_url = reverse('assure_photo', args=['0124336042'])
 
     def setUp(self):
@@ -828,6 +836,13 @@ class AssureApiTestCase(ApiTestCase):
             photo_type='image/jpeg',
         )
 
+    def verifier(self, identifiant, etablissement=None):
+        etablissement = etablissement or self.etablissement
+        return self.post_json(
+            self.verifier_url,
+            {'identifiant': identifiant, 'etablissement': str(etablissement.pk)},
+        )
+
     def test_la_verification_refuse_get(self):
         self.assertEqual(self.client.get(self.verifier_url).status_code, 405)
 
@@ -836,11 +851,12 @@ class VerifierAssureApiTests(AssureApiTestCase):
     """POST /api/assures/verifier/ : recherche par NNI ou par INAM."""
 
     def test_assure_trouve_par_nni(self):
-        response = self.post_json(self.verifier_url, {'identifiant': '0124336042'})
+        response = self.verifier('0124336042')
         donnees = response.json()
 
         self.assertEqual(response.status_code, 200, response.content)
         self.assertTrue(donnees['trouve'])
+        self.assertEqual(donnees['message'], 'Assuré trouvé')
         self.assertEqual(donnees['assure']['nom_complet'], 'SidAhmed Ahmed Vali')
         self.assertEqual(donnees['assure']['age'], self.assure.age)
         self.assertTrue(donnees['photo_disponible'])
@@ -852,21 +868,21 @@ class VerifierAssureApiTests(AssureApiTestCase):
         self.assertIn(self.assure.nni, donnees['qr_contenu'])
 
     def test_assure_trouve_par_inam(self):
-        response = self.post_json(self.verifier_url, {'identifiant': ' 180612797938-e '})
+        response = self.verifier(' 180612797938-e ')
 
         self.assertEqual(response.status_code, 200, response.content)
         self.assertTrue(response.json()['trouve'])
 
     def test_assure_introuvable(self):
-        response = self.post_json(self.verifier_url, {'identifiant': '9999999999'})
+        response = self.verifier('9999999999')
         donnees = response.json()
 
         self.assertEqual(response.status_code, 404)
         self.assertFalse(donnees['trouve'])
-        self.assertIn('introuvable', donnees['error'].lower())
+        self.assertEqual(donnees['error'], 'Assuré introuvable')
 
     def test_identifiant_obligatoire(self):
-        response = self.post_json(self.verifier_url, {'identifiant': '   '})
+        response = self.verifier('   ')
 
         self.assertEqual(response.status_code, 400)
         self.assertIn('error', response.json())
@@ -883,10 +899,19 @@ class VerifierAssureApiTests(AssureApiTestCase):
         Assure.objects.filter(pk=self.assure.pk).update(
             photo=None, photo_type='', photo_path=''
         )
-        response = self.post_json(self.verifier_url, {'identifiant': '0124336042'})
+        response = self.verifier('0124336042')
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()['photo_disponible'])
+
+    def test_verification_refuse_sans_etablissement(self):
+        response = self.post_json(
+            self.verifier_url,
+            {'identifiant': '0124336042'},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Sélectionnez un hôpital', response.json()['error'])
 
 
 class FeuilleDeSoinsApiTests(AssureApiTestCase):
@@ -906,19 +931,32 @@ class FeuilleDeSoinsApiTests(AssureApiTestCase):
         self.assertIn('0124336042', texte)
 
     def test_feuille_de_soins_par_numero_inam(self):
-        response = self.client.get(reverse('feuille_de_soins_pdf', args=['180612797938-E']))
+        url = reverse('feuille_de_soins_pdf', args=['180612797938-E'])
+        response = self.client.get(url, {'etablissement': self.etablissement.pk})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
     def test_feuille_de_soins_assure_inconnu(self):
-        response = self.client.get(reverse('feuille_de_soins_pdf', args=['9999999999']))
+        url = reverse('feuille_de_soins_pdf', args=['9999999999'])
+        response = self.client.get(url, {'etablissement': self.etablissement.pk})
 
         self.assertEqual(response.status_code, 404)
         self.assertFalse(response.json()['trouve'])
+        self.assertEqual(response.json()['error'], 'Assuré introuvable')
+
+    def test_feuille_de_soins_refuse_sans_etablissement(self):
+        url = reverse('feuille_de_soins_pdf', args=['0124336042'])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Sélectionnez un hôpital', response.json()['error'])
 
     def test_affichage_en_ligne_du_pdf(self):
-        response = self.client.get(self.feuille_url, {'inline': '1'})
+        response = self.client.get(
+            self.feuille_url,
+            {'etablissement': self.etablissement.pk, 'inline': '1'},
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('inline', response['Content-Disposition'])
@@ -1098,15 +1136,19 @@ class EtablissementSelectionneTests(AssureApiTestCase):
         self.assertEqual(self.assure.centre_hospitalier, self.hopital.libelle)
 
     def test_etablissement_selectionne_est_imprime_dans_le_pdf(self):
-        self.post_json(
+        response = self.post_json(
             self.verifier_url,
             {'identifiant': '0124336042', 'etablissement': str(self.hopital.pk)},
         )
+        Assure.objects.filter(pk=self.assure.pk).update(
+            centre_hospitalier='Hôpital différent'
+        )
 
-        reponse_pdf = self.client.get(self.feuille_url)
+        reponse_pdf = self.client.get(response.json()['feuille_url'])
 
         self.assertEqual(reponse_pdf.status_code, 200)
         self.assertIn("Hôpital Kassala", texte_du_pdf(reponse_pdf.content))
+        self.assertNotIn("Hôpital différent", texte_du_pdf(reponse_pdf.content))
 
     def test_selection_par_nom_ou_par_libelle(self):
         valeurs = (
@@ -1158,25 +1200,17 @@ class EtablissementSelectionneTests(AssureApiTestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    def test_sans_selection_le_centre_en_base_est_conserve(self):
+    def test_sans_selection_verification_est_refusee(self):
         Assure.objects.filter(pk=self.assure.pk).update(
             centre_hospitalier='Hôpital National'
         )
 
         response = self.post_json(self.verifier_url, {'identifiant': '0124336042'})
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['centre_hospitalier'], 'Hôpital National')
-        self.assertEqual(response.json()['etablissement_selectionne'], '')
-
-    def test_sans_selection_le_centre_par_defaut_est_utilise(self):
-        response = self.post_json(self.verifier_url, {'identifiant': '0124336042'})
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.json()['centre_hospitalier'], settings.CNAM_FEUILLE_SOINS_CENTRE
-        )
-        self.assertEqual(response.json()['etablissement_selectionne'], '')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Sélectionnez un hôpital', response.json()['error'])
+        self.assure.refresh_from_db()
+        self.assertEqual(self.assure.centre_hospitalier, 'Hôpital National')
 
     def test_une_nouvelle_selection_remplace_la_precedente(self):
         self.post_json(
